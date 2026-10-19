@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biricik Sevgilime 🖤</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #241142 0%, #0d061c 65%, #05020c 100%);
+      color: white;
+      position: relative;
+    }
+
+    .glow-bg {
+      position: absolute;
+      width: 80vw;
+      height: 80vw;
+      max-width: 900px;
+      max-height: 900px;
+      background: radial-gradient(circle, rgba(216, 180, 254, 0.22), rgba(236, 72, 153, 0.12), transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(90px);
+      z-index: 1;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: floatGlow 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(-50%, -50%) scale(0.9); }
+      100% { transform: translate(-48%, -52%) scale(1.1); }
+    }
+
+    .fullscreen-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fbcfe8;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 9999;
+      backdrop-filter: blur(12px);
+      transition: all 0.2s;
+      font-size: 1.3rem;
+    }
+    .fullscreen-btn:hover {
+      background: rgba(236, 72, 153, 0.35);
+      transform: scale(1.08);
+    }
+
+    .screen-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .step {
+      display: none;
+      width: 100%;
+      max-width: 800px;
+      text-align: center;
+      animation: fadeIn 0.4s ease forwards;
+    }
+    .step.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    h2 {
+      font-size: 2.1rem;
+      margin-bottom: 10px;
+      color: #fdf4ff;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    p.subtitle {
+      font-size: 1.1rem;
+      color: #e9d5ff;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      max-width: 540px;
+    }
+
+    .lily-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 50%;
+      margin-bottom: 18px;
+      box-shadow: 0 0 30px rgba(232, 121, 249, 0.35);
+    }
+    .lily-badge svg {
+      width: 44px;
+      height: 44px;
+      fill: none;
+      stroke: #fdf4ff;
+      stroke-width: 1.6;
+    }
+
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 28px;
+      height: 22px;
+      align-items: center;
+    }
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      transition: all 0.2s ease;
+    }
+    .dot.filled {
+      background: linear-gradient(135deg, #c084fc, #f472b6);
+      border-color: #e879f9;
+      transform: scale(1.25);
+      box-shadow: 0 0 14px rgba(192, 132, 252, 0.9);
+    }
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 280px;
+      margin: 0 auto;
+    }
+    .key {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      color: #ffffff;
+      outline: none;
+    }
+    .key:hover { background: rgba(255, 255, 255, 0.22); }
+    .key:active { transform: scale(0.9); background: rgba(236, 72, 153, 0.5); }
+    .key.action { font-size: 1.05rem; color: #e2e8f0; font-weight: normal; }
+
+    #error-msg {
+      color: #fb7185;
+      font-size: 0.95rem;
+      margin-top: 16px;
+      min-height: 22px;
+      font-weight: 500;
+    }
+
+    .couple-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 26px;
+      margin: 22px 0 26px;
+    }
+    .avatar-circle {
+      width: 95px;
+      height: 95px;
+      border-radius: 50%;
+      border: 2px dashed rgba(244, 114, 182, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 2.5rem;
+    }
+    .heart-icon { font-size: 2.1rem; color: #ffffff; }
+
+    .music-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.32);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 30px;
+      padding: 36px 30px;
+      width: 100%;
+      max-width: 420px;
+      margin: 10px auto 25px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    }
+    .vinyl-box {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #252525 25%, #111 60%, #303030 100%);
+      border: 5px solid rgba(255,255,255,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 35px rgba(0,0,0,0.7);
+      margin-bottom: 22px;
+      cursor: pointer;
+      position: relative;
+    }
+    .vinyl-box.playing { animation: rotateVinyl 8s linear infinite; }
+    @keyframes rotateVinyl {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .vinyl-photo {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #ffffff;
+      pointer-events: none;
+    }
+    .song-title { font-size: 1.5rem; font-weight: 600; color: #fdf4ff; margin-bottom: 5px; }
+    .song-artist { font-size: 1.05rem; color: #f472b6; margin-bottom: 22px; }
+    .play-btn {
+      background: linear-gradient(135deg, #ec4899, #f43f5e);
+      border: none;
+      color: white;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      cursor: pointer;
+      box-shadow: 0 4px 22px rgba(244, 63, 94, 0.5);
+      transition: transform 0.2s;
+    }
+    .play-btn:hover { transform: scale(1.08); }
+
+    .flower-box {
+      width: 230px;
+      height: 230px;
+      margin: 15px auto 25px;
+      position: relative;
+    }
+    .flower-core {
+      width: 58px;
+      height: 58px;
+      background: radial-gradient(circle, #fde047, #eab308);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      box-shadow: 0 0 22px rgba(250, 204, 21, 0.7);
+    }
+    .petal {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 34px; height: 80px;
+      background: linear-gradient(to top, #ffffff, #fdf4ff);
+      border: 1px solid rgba(232, 121, 249, 0.4);
+      border-radius: 20px 20px 8px 8px;
+      transform-origin: 50% 100%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .petal:hover { filter: brightness(0.92); }
+
+    /* POLAROID GALERİSİ */
+    .polaroid-frame {
+      background: #ffffff;
+      padding: 18px 18px 26px;
+      border-radius: 18px;
+      box-shadow: 0 22px 55px rgba(0,0,0,0.65);
+      margin: 5px auto 18px;
+      width: 88vw;
+      max-width: 440px;
+      transform: rotate(-1.5deg);
+      transition: transform 0.3s ease;
+    }
+    .polaroid-frame:hover { transform: rotate(0deg) scale(1.02); }
+    .polaroid-img {
+      width: 100%;
+      height: 52vh;
+      max-height: 420px;
+      min-height: 280px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+      background: #f1f5f9;
+      transition: opacity 0.25s ease;
+    }
+    .polaroid-caption {
+      color: #1e293b;
+      font-size: 1.25rem;
+      margin-top: 16px;
+      font-weight: 600;
+      min-height: 32px;
+      transition: opacity 0.25s ease;
+    }
+    .polaroid-date {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+    .gallery-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 26px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 50;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: white;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.4rem;
+      transition: all 0.2s;
+      outline: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn:hover { background: rgba(236, 72, 153, 0.5); transform: scale(1.1); }
+    .nav-btn:active { transform: scale(0.92); }
+
+    /* CANLI ZAMAN SAYACI */
+    .timer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      width: 88vw;
+      max-width: 440px;
+      margin: 18px auto 25px;
+    }
+    .timer-unit {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      padding: 16px 8px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+    .timer-num {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fdf4ff;
+      background: linear-gradient(135deg, #f472b6, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .timer-lbl {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* GÖZLER ADIMI */
+    #step-eyes {
+      position: relative;
+    }
+    .user-lily-img {
+      position: absolute;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.35;
+      filter: drop-shadow(0 0 25px rgba(232, 121, 249, 0.5));
+      object-fit: contain;
+    }
+    .user-lily-img.left {
+      top: -20px;
+      left: -50px;
+      width: 240px;
+      height: 240px;
+      transform: rotate(-15deg);
+    }
+    .user-lily-img.right {
+      bottom: -20px;
+      right: -50px;
+      width: 250px;
+      height: 250px;
+      transform: rotate(20deg) scaleX(-1);
+    }
+
+    .scratch-container {
+      position: relative;
+      width: 88vw;
+      max-width: 460px;
+      height: 48vh;
+      max-height: 340px;
+      min-height: 250px;
+      margin: 10px auto 18px;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.7);
+      border: 2px solid rgba(255,255,255,0.25);
+      user-select: none;
+      touch-action: none;
+      z-index: 5;
+    }
+    .scratch-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .scratch-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      cursor: pointer;
+      z-index: 6;
+    }
+
+    /* MEKTUP & ZARF */
+    .envelope-box {
+      width: 270px;
+      height: 175px;
+      background: linear-gradient(135deg, #fbcfe8, #f472b6);
+      border-radius: 20px;
+      margin: 20px auto;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 16px 40px rgba(236, 72, 153, 0.45);
+      transition: transform 0.3s;
+    }
+    .envelope-box:hover { transform: scale(1.05); }
+    .envelope-seal {
+      width: 58px;
+      height: 58px;
+      background: #1e112a;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      animation: pulseSeal 1.8s infinite;
+    }
+    @keyframes pulseSeal {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .letter-paper {
+      display: none;
+      background: #fff;
+      color: #334155;
+      padding: 30px 26px;
+      border-radius: 22px;
+      text-align: left;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      max-height: 380px;
+      width: 90vw;
+      max-width: 540px;
+      overflow-y: auto;
+      margin: 15px auto;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.55);
+      animation: letterOpen 0.5s ease forwards;
+    }
+    @keyframes letterOpen {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #c084fc, #ec4899);
+      border: none;
+      color: white;
+      padding: 15px 38px;
+      border-radius: 35px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 22px rgba(192, 132, 252, 0.45);
+    }
+    .btn:hover { transform: scale(1.04); }
+  </style>
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <button type="button" class="fullscreen-btn" onclick="toggleFullScreen()" title="Tam Ekran">⛶</button>
+
+  <audio id="myAudio" loop preload="auto">
+    <source src="sarki.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="screen-wrapper">
+    
+    <!-- 1. ADIM: KİLİT EKRANI -->
+    <div class="step active" id="step-lock">
+      <div class="lily-badge">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C10 7 7 10 7 14c0 3 2 5 5 5s5-2 5-5c0-4-3-7-5-12z"/>
+          <path d="M12 14c-2.5 0-5-1-6.5-3 1.5 4 4 6 6.5 6s5-2 6.5-6c-1.5 2-4 3-6.5 3z"/>
+          <path d="M12 19v3"/>
+        </svg>
+      </div>
+      <h2>Hoş Geldin Sevgilim 🖤</h2>
+      <p class="subtitle">Devam etmek için her şeyin başladığı tarihi tuşla...</p>
+      
+      <div class="pin-dots">
+        <div class="dot" id="dot-0"></div>
+        <div class="dot" id="dot-1"></div>
+        <div class="dot" id="dot-2"></div>
+        <div class="dot" id="dot-3"></div>
+      </div>
+
+      <div class="keypad">
+        <button type="button" class="key" onclick="press('1')">1</button>
+        <button type="button" class="key" onclick="press('2')">2</button>
+        <button type="button" class="key" onclick="press('3')">3</button>
+        <button type="button" class="key" onclick="press('4')">4</button>
+        <button type="button" class="key" onclick="press('5')">5</button>
+        <button type="button" class="key" onclick="press('6')">6</button>
+        <button type="button" class="key" onclick="press('7')">7</button>
+        <button type="button" class="key" onclick="press('8')">8</button>
+        <button type="button" class="key" onclick="press('9')">9</button>
+        <button type="button" class="key action" onclick="clearInput()">Sil</button>
+        <button type="button" class="key" onclick="press('0')">0</button>
+        <button type="button" class="key action" onclick="checkPin()">Giriş</button>
+      </div>
+
+      <div id="error-msg"></div>
+    </div>
+
+    <!-- 2. ADIM: KARŞILAMA -->
+    <div class="step" id="step-welcome">
+      <div class="lily-badge">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C10 7 7 10 7 14c0 3 2 5 5 5s5-2 5-5c0-4-3-7-5-12z"/>
+          <path d="M12 14c-2.5 0-5-1-6.5-3 1.5 4 4 6 6.5 6s5-2 6.5-6c-1.5 2-4 3-6.5 3z"/>
+          <path d="M12 19v3"/>
+        </svg>
+      </div>
+
+      <h2>Kalbimin En Güzel Yerine Hoş Geldin ✨</h2>
+      
+      <div class="couple-row">
+        <div class="avatar-circle">🧑🏻‍💻</div>
+        <div class="heart-icon">🖤</div>
+        <div class="avatar-circle">👩🏻‍🍳</div>
+      </div>
+
+      <p class="subtitle" style="font-size: 1.15rem;">
+        En güzel zambaklar bile senin gülüşün kadar zarif açamazdı...<br><br>
+        Aramızdaki yollar ne kadar uzun olursa olsun, kalbim her saniye senin yanında.
+      </p>
+
+      <button type="button" class="btn" onclick="goToStep('step-music')">Şarkımızı Dinle 🎵</button>
+    </div>
+
+    <!-- 3. ADIM: MÜZİK KARTI -->
+    <div class="step" id="step-music">
+      <h2>Bizim Şarkımız 🎶</h2>
+      <p class="subtitle">Bu şarkı her çaldığında kalbim seninle atıyor...</p>
+      
+      <div class="music-box">
+        <div class="vinyl-box" id="vinyl" onclick="togglePlay()">
+          <img class="vinyl-photo" id="coverPhoto" src="kapak.jpg" onerror="this.src='https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=300'" alt="Biz">
+        </div>
+
+        <div class="song-title">Tatlıyla Balla</div>
+        <div class="song-artist">Yalın</div>
+
+        <button type="button" class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+        <p id="audioHint" style="font-size:0.88rem; color:#cbd5e1; margin-top:16px;">(Müziği başlatmak için fotoğrafa veya butona tıkla)</p>
+      </div>
+
+      <button type="button" class="btn" onclick="goToStep('step-game')">Zambak Falına Bak 🌼</button>
+    </div>
+
+    <!-- 4. ADIM: ZAMBAK FALI OYUNU -->
+    <div class="step" id="step-game">
+      <h2>Zambak Falı 🌼</h2>
+      <p class="subtitle" id="gameStatus">Yaprakların üzerine tıkla ve kopar...</p>
+
+      <div class="flower-box" id="flowerBox">
+        <div class="flower-core"></div>
+      </div>
+
+      <button type="button" class="btn" id="gameNextBtn" style="display:none;" onclick="goToStep('step-gallery')">Anı Defterimiz 📸</button>
+    </div>
+
+    <!-- 5. ADIM: SİNEMATİK ANI DEFTERİ -->
+    <div class="step" id="step-gallery">
+      <h2>Anı Defterimiz 📸</h2>
+      <p class="subtitle">Her karesinde seninle güzelleşen anılarımız...</p>
+
+      <div class="polaroid-frame">
+        <img id="curPhoto" class="polaroid-img" src="foto1.jpg" alt="Anı">
+        <div class="polaroid-caption" id="curCaption">Gülüşüne kurban olduğum</div>
+        <div class="polaroid-date" id="curDate">Anı 1 / 3</div>
+      </div>
+
+      <div class="gallery-nav">
+        <button type="button" class="nav-btn" onclick="prevSlide(event)">❮</button>
+        <button type="button" class="nav-btn" onclick="nextSlide(event)">❯</button>
+      </div>
+
+      <button type="button" class="btn" onclick="goToStep('step-timer')">Bizim Zamanımız ⏳</button>
+    </div>
+
+    <!-- 6. ADIM: CANLI ZAMAN SAYACI -->
+    <div class="step" id="step-timer">
+      <h2>İyi Ki Varsın 🖤</h2>
+      <p class="subtitle">Her şeyin başladığı o ilk andan beri kalbimin tek sahibisin...</p>
+
+      <div class="timer-grid">
+        <div class="timer-unit">
+          <span class="timer-num" id="t-days">0</span>
+          <span class="timer-lbl">Gün</span>
+        </div>
+        <div class="timer-unit">
+          <span class="timer-num" id="t-hours">00</span>
+          <span class="timer-lbl">Saat</span>
+        </div>
+        <div class="timer-unit">
+          <span class="timer-num" id="t-mins">00</span>
+          <span class="timer-lbl">Dakika</span>
+        </div>
+        <div class="timer-unit">
+          <span class="timer-num" id="t-secs">00</span>
+          <span class="timer-lbl">Saniye</span>
+        </div>
+      </div>
+
+      <p class="subtitle" style="font-size: 1rem; font-style: italic;">
+        "Mesafe sadece rakamlardan ibaret, her saniye seninleyim..."
+      </p>
+
+      <button type="button" class="btn" onclick="goToStep('step-eyes')">En Sevdiğim Manzara ✨</button>
+    </div>
+
+    <!-- 7. ADIM: GÖZLERİNE ÖZEL SİHİRLİ KART -->
+    <div class="step" id="step-eyes">
+      <img class="user-lily-img left" src="zambak.png" onerror="this.src='zambak.jpg'" alt="Zambak">
+      <img class="user-lily-img right" src="zambak.png" onerror="this.src='zambak.jpg'" alt="Zambak">
+
+      <h2>En Sevdiğim Manzara ✨</h2>
+      <p class="subtitle" id="eyesInstruction">Parmağını buğunun üzerinde gezdir...</p>
+
+      <div class="scratch-container" id="scratchContainer">
+        <img class="scratch-img" src="gozler.jpg" onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600'" alt="Gözlerin">
+        <canvas class="scratch-canvas" id="scratchCanvas"></canvas>
+      </div>
+
+      <p class="subtitle" id="eyesQuote" style="font-size: 1.15rem; margin-top: 14px; font-style: italic;">
+        "Gözlerini ne kadar çok sevdiğimi, onlara nasıl bittiğimi bir bilsen..." 🖤<br>
+        <span style="font-size:0.95rem; color:#cbd5e1;">(Bütün yollar bir gün o gözlerde kavuşacak)</span>
+      </p>
+
+      <button type="button" class="btn" id="eyesNextBtn" style="display:none;" onclick="goToStep('step-letter')">Sana Bir Mektubum Var 💌</button>
+    </div>
+
+    <!-- 8. ADIM: SÜRPRİZ MEKTUP -->
+    <div class="step" id="step-letter">
+      <h2>Sürpriz Mektup 💌</h2>
+      <p class="subtitle" id="envelopeHint">Mektubu okumak için zarfa dokun...</p>
+
+      <div class="envelope-box" id="envelope" onclick="openLetter()">
+        <div class="envelope-seal">🖤</div>
+      </div>
+
+      <div class="letter-paper" id="letterPaper">
+        <strong>Hayatımın anlamı, aşkım, güzel ve biricik sevgilim...</strong><br><br>
+        Mesafe olarak bana ne kadar uzaksan, aslında bir o kadar sevginle bana yakınsın. Seninle çok fazla buluşamamış olsak da sana sarılışım, kokunu içime çekişim beni dünyadaki her şeyden uzaklaştırıyor...<br><br>
+        Bana bu hayatta iyi gelen tek şeysin. Seninle beraber geçirdiğim her bir saniyeyi çok ama çok seviyorum.<br><br>
+        O güzel, gülen gözlerinle bana her baktığında içim gidiyor... Sana çok aşığım.<br><br>
+        İyi ki hayatımdasın ve en çok da iyi ki benimsin.<br><br>
+        <strong>Seni çok seviyorum güzelim... 🖤</strong>
+      </div>
+
+      <button type="button" class="btn" id="restartBtn" style="display:none;" onclick="goToStep('step-welcome')">Başa Dön ✨</button>
+    </div>
+
+  </div>
+
+  <script>
+    const CORRECT_PIN = "2010";
+    let currentInput = "";
+
+    const START_DATE = new Date("2025-10-20T00:00:00");
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    function press(num) {
+      if (currentInput.length < 4) {
+        currentInput += num;
+        updateDots();
+        document.getElementById('error-msg').innerText = "";
+        if (currentInput.length === 4) setTimeout(checkPin, 200);
+      }
+    }
+
+    function clearInput() {
+      currentInput = "";
+      updateDots();
+      document.getElementById('error-msg').innerText = "";
+    }
+
+    function updateDots() {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (i < currentInput.length) dot.classList.add('filled');
+        else dot.classList.remove('filled');
+      }
+    }
+
+    function checkPin() {
+      if (currentInput === CORRECT_PIN) {
+        if (typeof confetti === "function") confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
+        setTimeout(() => goToStep('step-welcome'), 300);
+      } else {
+        document.getElementById('error-msg').innerText = "Hatalı tarih aşkım, tekrar dene :)";
+        currentInput = "";
+        updateDots();
+      }
+    }
+
+    function goToStep(stepId) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(stepId);
+      if (target) target.classList.add('active');
+
+      if (stepId === 'step-game') initFlower();
+      if (stepId === 'step-gallery') renderSlide();
+      if (stepId === 'step-timer') updateTimer();
+      if (stepId === 'step-eyes') initScratch();
+    }
+
+    function updateTimer() {
+      const now = new Date();
+      const diff = now - START_DATE;
+
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        document.getElementById('t-days').innerText = days;
+        document.getElementById('t-hours').innerText = hours < 10 ? '0' + hours : hours;
+        document.getElementById('t-mins').innerText = mins < 10 ? '0' + mins : mins;
+        document.getElementById('t-secs').innerText = secs < 10 ? '0' + secs : secs;
+      }
+    }
+    setInterval(updateTimer, 1000);
+
+    const audio = document.getElementById('myAudio');
+    const playBtn = document.getElementById('playBtn');
+    const vinyl = document.getElementById('vinyl');
+    const hint = document.getElementById('audioHint');
+
+    function togglePlay() {
+      if (audio.paused) {
+        audio.volume = 1.0;
+        audio.play().then(() => {
+          playBtn.innerText = "❚❚";
+          vinyl.classList.add('playing');
+          hint.innerText = "Şimdi çalıyor... 🎵";
+        }).catch(err => {
+          hint.innerHTML = "<span style='color:#fb7185'>'sarki.mp3' bulunamadı!</span>";
+        });
+      } else {
+        audio.pause();
+        playBtn.innerText = "▶";
+        vinyl.classList.remove('playing');
+        hint.innerText = "Duraklatıldı";
+      }
+    }
+
+    let flowerReady = false;
+    function initFlower() {
+      if (flowerReady) return;
+      const box = document.getElementById('flowerBox');
+      const totalPetals = 8;
+      let left = totalPetals;
+
+      for (let i = 0; i < totalPetals; i++) {
+        const p = document.createElement('div');
+        p.className = 'petal';
+        const angle = (360 / totalPetals) * i;
+        p.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+        
+        p.onclick = function() {
+          p.style.opacity = '0';
+          p.style.pointerEvents = 'none';
+          p.style.transform += ' translateY(-20px) scale(0.6)';
+          left--;
+
+          const status = document.getElementById('gameStatus');
+          if (left > 1) {
+            status.innerText = (left % 2 === 0) ? "Seviyor... 🌸" : "Çok seviyor... 🖤";
+          } else if (left === 1) {
+            status.innerText = "Son yaprak kaldı...";
+          } else {
+            status.innerHTML = `
+              <b style='color:#f472b6; font-size:1.35rem; display:block; margin-bottom:6px;'>HER ŞEYDEN ÇOK SEVİYOR! 🖤✨</b>
+              <span style='color:#e2e8f0; font-size:1.05rem; font-style:italic;'>(çok sevmeme gibi bir şansın yok zaten)</span>
+            `;
+            document.getElementById('gameNextBtn').style.display = "inline-block";
+            confetti({ particleCount: 120, spread: 85, origin: { y: 0.6 } });
+          }
+        };
+        box.appendChild(p);
+      }
+      flowerReady = true;
+    }
+
+    const galleryItems = [
+      { img: "foto1.jpg", fallback: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800", caption: "Gülüşüne kurban olduğum", date: "Anı 1 / 3" },
+      { img: "foto2.jpg", fallback: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800", caption: "Seninle geçen her an çok kıymetli.", date: "Anı 2 / 3" },
+      { img: "foto3.jpg", fallback: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=800", caption: "sonumuz bir gün böyle mutlu olacak", date: "Anı 3 / 3" }
+    ];
+    let currentSlide = 0;
+
+    function renderSlide() {
+      const item = galleryItems[currentSlide];
+      const imgEl = document.getElementById('curPhoto');
+      const capEl = document.getElementById('curCaption');
+      const dateEl = document.getElementById('curDate');
+
+      if (!imgEl || !item) return;
+
+      imgEl.style.opacity = '0.3';
+      capEl.style.opacity = '0.3';
+
+      setTimeout(() => {
+        imgEl.src = item.img;
+        imgEl.onerror = function() {
+          this.onerror = null;
+          this.src = item.fallback;
+        };
+        capEl.innerText = item.caption;
+        dateEl.innerText = item.date;
+
+        imgEl.style.opacity = '1';
+        capEl.style.opacity = '1';
+      }, 150);
+    }
+
+    function nextSlide(e) {
+      if (e) e.stopPropagation();
+      currentSlide = (currentSlide + 1) % galleryItems.length;
+      renderSlide();
+    }
+
+    function prevSlide(e) {
+      if (e) e.stopPropagation();
+      currentSlide = (currentSlide - 1 + galleryItems.length) % galleryItems.length;
+      renderSlide();
+    }
+
+    let scratchInitialized = false;
+    function initScratch() {
+      if (scratchInitialized) return;
+      const container = document.getElementById('scratchContainer');
+      const canvas = document.getElementById('scratchCanvas');
+      
+      canvas.width = container.offsetWidth;
+      canvas.height = container.offsetHeight;
+
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#2e1065');
+      grad.addColorStop(1, '#160431');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#f5d0fe';
+      ctx.font = '600 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+      ctx.shadowBlur = 8;
+      ctx.fillText('✨ Dokun ve buğuyu arala ✨', w / 2, h / 2);
+
+      let isDrawing = false;
+      let clearedPixels = 0;
+
+      function scratch(e) {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 32, 0, Math.PI * 2);
+        ctx.fill();
+
+        clearedPixels++;
+        if (clearedPixels > 30) {
+          document.getElementById('eyesInstruction').innerText = "İşte benim en güzel dünyam...";
+          document.getElementById('eyesNextBtn').style.display = "inline-block";
+        }
+      }
+
+      canvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(e); });
+      canvas.addEventListener('mousemove', scratch);
+      window.addEventListener('mouseup', () => { isDrawing = false; });
+
+      canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); }, { passive: false });
+      canvas.addEventListener('touchmove', scratch, { passive: false });
+      window.addEventListener('touchend', () => { isDrawing = false; });
+
+      scratchInitialized = true;
+    }
+
+    function openLetter() {
+      document.getElementById('envelope').style.display = "none";
+      document.getElementById('envelopeHint').innerText = "İçimden gelenler...";
+      document.getElementById('letterPaper').style.display = "block";
+      document.getElementById('restartBtn').style.display = "inline-block";
+      confetti({ particleCount: 120, spread: 85, origin: { y: 0.5 } });
+    }
+
+    window.addEventListener('keydown', function(e) {
+      if (!document.getElementById('step-lock').classList.contains('active')) return;
+      if (e.key >= '0' && e.key <= '9') press(e.key);
+      else if (e.key === 'Backspace') clearInput();
+      else if (e.key === 'Enter') checkPin();
+    });
+  </script>
+</body>
+</html>
